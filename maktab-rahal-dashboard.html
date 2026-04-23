@@ -1,0 +1,972 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Maktab Rahal — Manager Dashboard</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,700;1,9..144,300&family=Noto+Kufi+Arabic:wght@400;600&display=swap" rel="stylesheet" />
+<style>
+/* ─── CONFIG ──────────────────────────────────────────────── */
+:root {
+  --bg:        #0e0e0f;
+  --surface:   #181819;
+  --border:    #2a2a2d;
+  --amber:     #e8a040;
+  --amber-dim: #7a511e;
+  --green:     #4caf82;
+  --red:       #d95f5f;
+  --blue:      #5b8fd4;
+  --text:      #e8e6e1;
+  --muted:     #7a7875;
+  --font-en:   'Fraunces', Georgia, serif;
+  --font-mono: 'DM Mono', monospace;
+  --font-ar:   'Noto Kufi Arabic', sans-serif;
+  --radius:    6px;
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { font-size: 15px; }
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font-en);
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+/* ─── LAYOUT ──────────────────────────────────────────────── */
+.shell {
+  display: grid;
+  grid-template-columns: 220px 1fr;
+  grid-template-rows: auto 1fr;
+  min-height: 100vh;
+}
+header {
+  grid-column: 1 / -1;
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 28px;
+  height: 56px;
+}
+.logo {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-family: var(--font-ar);
+  font-size: 1.05rem;
+  color: var(--amber);
+  letter-spacing: 0;
+}
+.logo-en {
+  font-family: var(--font-en);
+  font-style: italic;
+  font-size: 0.82rem;
+  color: var(--muted);
+  font-weight: 300;
+}
+.header-meta {
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  color: var(--muted);
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+.dot { width: 7px; height: 7px; border-radius: 50%; background: var(--green); display: inline-block; }
+
+nav {
+  background: var(--surface);
+  border-right: 1px solid var(--border);
+  padding: 24px 0;
+  position: sticky;
+  top: 0;
+  height: calc(100vh - 56px);
+  overflow-y: auto;
+}
+.nav-label {
+  font-family: var(--font-mono);
+  font-size: 0.65rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--muted);
+  padding: 0 20px 8px;
+  margin-top: 18px;
+}
+.nav-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 9px 20px;
+  font-size: 0.85rem;
+  color: var(--muted);
+  cursor: pointer;
+  transition: all 0.15s;
+  border-left: 2px solid transparent;
+}
+.nav-item:hover { color: var(--text); background: rgba(255,255,255,0.03); }
+.nav-item.active { color: var(--amber); border-left-color: var(--amber); background: rgba(232,160,64,0.06); }
+.nav-icon { width: 16px; text-align: center; font-style: normal; }
+
+main {
+  padding: 32px 36px;
+  overflow-y: auto;
+}
+
+/* ─── VIEWS ───────────────────────────────────────────────── */
+.view { display: none; }
+.view.active { display: block; }
+
+/* ─── PAGE HEADER ─────────────────────────────────────────── */
+.page-header {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  margin-bottom: 28px;
+  padding-bottom: 20px;
+  border-bottom: 1px solid var(--border);
+}
+.page-title {
+  font-size: 1.55rem;
+  font-weight: 700;
+  line-height: 1.1;
+}
+.page-title span {
+  display: block;
+  font-size: 0.78rem;
+  font-family: var(--font-mono);
+  font-weight: 400;
+  color: var(--muted);
+  margin-top: 4px;
+  font-style: normal;
+}
+
+/* ─── STAT CARDS ──────────────────────────────────────────── */
+.stat-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 16px;
+  margin-bottom: 32px;
+}
+.stat-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 20px 22px;
+  position: relative;
+  overflow: hidden;
+}
+.stat-card::after {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 2px;
+  background: var(--amber);
+  opacity: 0.5;
+}
+.stat-card.green::after { background: var(--green); }
+.stat-card.blue::after  { background: var(--blue); }
+.stat-card.red::after   { background: var(--red); }
+.stat-value {
+  font-family: var(--font-mono);
+  font-size: 2rem;
+  font-weight: 500;
+  color: var(--text);
+  line-height: 1;
+  margin-bottom: 6px;
+}
+.stat-label {
+  font-size: 0.75rem;
+  color: var(--muted);
+  font-family: var(--font-mono);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+/* ─── WEEK BADGE ──────────────────────────────────────────── */
+.week-tabs {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 24px;
+}
+.week-tab {
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  padding: 6px 14px;
+  border-radius: 4px;
+  border: 1px solid var(--border);
+  background: transparent;
+  color: var(--muted);
+  cursor: pointer;
+  transition: all 0.15s;
+}
+.week-tab:hover { border-color: var(--amber-dim); color: var(--text); }
+.week-tab.active { background: var(--amber); color: var(--bg); border-color: var(--amber); font-weight: 500; }
+.week-tab.locked { opacity: 0.35; cursor: not-allowed; }
+
+/* ─── TABLE ───────────────────────────────────────────────── */
+.table-wrap {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  overflow: hidden;
+  margin-bottom: 28px;
+}
+.table-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 22px;
+  border-bottom: 1px solid var(--border);
+}
+.table-title {
+  font-family: var(--font-mono);
+  font-size: 0.78rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+.badge {
+  font-family: var(--font-mono);
+  font-size: 0.68rem;
+  padding: 3px 9px;
+  border-radius: 20px;
+  background: rgba(232,160,64,0.12);
+  color: var(--amber);
+  border: 1px solid var(--amber-dim);
+}
+.badge.green { background: rgba(76,175,130,0.12); color: var(--green); border-color: rgba(76,175,130,0.3); }
+.badge.red   { background: rgba(217,95,95,0.12);  color: var(--red);   border-color: rgba(217,95,95,0.3); }
+
+table { width: 100%; border-collapse: collapse; }
+thead tr { border-bottom: 1px solid var(--border); }
+th {
+  font-family: var(--font-mono);
+  font-size: 0.68rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--muted);
+  padding: 10px 22px;
+  text-align: left;
+  font-weight: 500;
+}
+td {
+  padding: 13px 22px;
+  font-size: 0.85rem;
+  color: var(--text);
+  border-bottom: 1px solid rgba(255,255,255,0.04);
+}
+tr:last-child td { border-bottom: none; }
+tr:hover td { background: rgba(255,255,255,0.02); }
+
+/* ─── STATUS PILLS ────────────────────────────────────────── */
+.status {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  padding: 3px 10px;
+  border-radius: 20px;
+}
+.status-dot { width: 5px; height: 5px; border-radius: 50%; }
+.s-done    { background: rgba(76,175,130,0.12); color: var(--green); }
+.s-done    .status-dot { background: var(--green); }
+.s-pending { background: rgba(232,160,64,0.12);  color: var(--amber); }
+.s-pending .status-dot { background: var(--amber); }
+.s-late    { background: rgba(217,95,95,0.12);   color: var(--red); }
+.s-late    .status-dot { background: var(--red); }
+.s-na      { background: rgba(122,120,117,0.12); color: var(--muted); }
+.s-na      .status-dot { background: var(--muted); }
+
+/* ─── PROGRESS BAR ────────────────────────────────────────── */
+.progress-track {
+  height: 5px;
+  background: rgba(255,255,255,0.07);
+  border-radius: 3px;
+  overflow: hidden;
+  width: 80px;
+}
+.progress-fill {
+  height: 100%;
+  background: var(--amber);
+  border-radius: 3px;
+  transition: width 0.4s ease;
+}
+.progress-fill.green { background: var(--green); }
+
+/* ─── TASK CARDS ──────────────────────────────────────────── */
+.task-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 14px;
+  margin-top: 8px;
+}
+.task-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 18px 20px;
+  transition: border-color 0.15s;
+}
+.task-card:hover { border-color: var(--amber-dim); }
+.task-id {
+  font-family: var(--font-mono);
+  font-size: 0.65rem;
+  color: var(--amber);
+  margin-bottom: 8px;
+  letter-spacing: 0.06em;
+}
+.task-title {
+  font-size: 0.88rem;
+  font-weight: 700;
+  margin-bottom: 6px;
+  line-height: 1.3;
+}
+.task-desc {
+  font-size: 0.78rem;
+  color: var(--muted);
+  line-height: 1.5;
+  margin-bottom: 12px;
+}
+.task-meta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.task-track {
+  font-family: var(--font-mono);
+  font-size: 0.65rem;
+  color: var(--blue);
+  background: rgba(91,143,212,0.1);
+  padding: 2px 8px;
+  border-radius: 3px;
+  border: 1px solid rgba(91,143,212,0.2);
+}
+
+/* ─── SETUP PANEL ─────────────────────────────────────────── */
+.setup-block {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 28px 32px;
+  margin-bottom: 20px;
+}
+.setup-block h3 {
+  font-family: var(--font-mono);
+  font-size: 0.8rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--amber);
+  margin-bottom: 16px;
+}
+.config-row {
+  display: grid;
+  grid-template-columns: 200px 1fr auto;
+  gap: 10px;
+  align-items: center;
+  margin-bottom: 12px;
+}
+.config-label {
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  color: var(--muted);
+}
+.config-input {
+  background: var(--bg);
+  border: 1px solid var(--border);
+  color: var(--text);
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  padding: 8px 12px;
+  border-radius: 4px;
+  outline: none;
+  transition: border-color 0.15s;
+}
+.config-input:focus { border-color: var(--amber); }
+.config-input::placeholder { color: var(--muted); opacity: 0.5; }
+.btn {
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  padding: 8px 16px;
+  border-radius: 4px;
+  border: none;
+  cursor: pointer;
+  transition: all 0.15s;
+  letter-spacing: 0.05em;
+}
+.btn-primary { background: var(--amber); color: var(--bg); font-weight: 500; }
+.btn-primary:hover { background: #f0b050; }
+.btn-ghost { background: transparent; border: 1px solid var(--border); color: var(--muted); }
+.btn-ghost:hover { border-color: var(--amber-dim); color: var(--text); }
+
+/* ─── NOTICE ──────────────────────────────────────────────── */
+.notice {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  background: rgba(232,160,64,0.07);
+  border: 1px solid rgba(232,160,64,0.2);
+  border-radius: var(--radius);
+  padding: 14px 18px;
+  margin-bottom: 20px;
+}
+.notice-icon { color: var(--amber); font-size: 1rem; flex-shrink: 0; margin-top: 1px; }
+.notice p {
+  font-size: 0.8rem;
+  color: var(--muted);
+  line-height: 1.6;
+}
+.notice p strong { color: var(--text); }
+
+/* ─── LOADING ─────────────────────────────────────────────── */
+.loading {
+  text-align: center;
+  padding: 60px;
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  color: var(--muted);
+  letter-spacing: 0.1em;
+}
+.loading::after {
+  content: '';
+  display: block;
+  width: 24px;
+  height: 24px;
+  border: 2px solid var(--border);
+  border-top-color: var(--amber);
+  border-radius: 50%;
+  margin: 16px auto 0;
+  animation: spin 0.8s linear infinite;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* ─── SCROLLBAR ───────────────────────────────────────────── */
+::-webkit-scrollbar { width: 5px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+</style>
+</head>
+<body>
+
+<div class="shell">
+
+<!-- ─── HEADER ─────────────────────────────────────────── -->
+<header>
+  <div class="logo">
+    <span>مكتب رحّال</span>
+    <span class="logo-en">Maktab Rahal · Manager Dashboard</span>
+  </div>
+  <div class="header-meta">
+    <span><span class="dot"></span> LIVE</span>
+    <span id="live-clock">--:--</span>
+    <span id="week-indicator">WEEK 2</span>
+  </div>
+</header>
+
+<!-- ─── SIDEBAR ────────────────────────────────────────── -->
+<nav>
+  <div class="nav-label">Overview</div>
+  <div class="nav-item active" onclick="showView('overview')">
+    <i class="nav-icon">◈</i> Cohort Status
+  </div>
+
+  <div class="nav-label">Programme</div>
+  <div class="nav-item" onclick="showView('tasks')">
+    <i class="nav-icon">⊞</i> Task Board
+  </div>
+  <div class="nav-item" onclick="showView('interns')">
+    <i class="nav-icon">◎</i> Interns
+  </div>
+  <div class="nav-item" onclick="showView('submissions')">
+    <i class="nav-icon">↗</i> Submissions
+  </div>
+
+  <div class="nav-label">System</div>
+  <div class="nav-item" onclick="showView('setup')">
+    <i class="nav-icon">⚙</i> Setup / Config
+  </div>
+</nav>
+
+<!-- ─── MAIN ───────────────────────────────────────────── -->
+<main>
+
+  <!-- ── OVERVIEW ─────────────────────────────────────── -->
+  <div class="view active" id="view-overview">
+    <div class="page-header">
+      <div class="page-title">
+        Cohort Status
+        <span>90-Day Programme · Week 2 of 13 · Foundations Phase</span>
+      </div>
+      <button class="btn btn-ghost" onclick="loadAllData()">↺ Refresh</button>
+    </div>
+
+    <div class="stat-grid" id="stat-grid">
+      <div class="stat-card">
+        <div class="stat-value" id="stat-interns">—</div>
+        <div class="stat-label">Active Interns</div>
+      </div>
+      <div class="stat-card green">
+        <div class="stat-value" id="stat-done">—</div>
+        <div class="stat-label">Tasks Submitted</div>
+      </div>
+      <div class="stat-card blue">
+        <div class="stat-value" id="stat-pending">—</div>
+        <div class="stat-label">Pending Review</div>
+      </div>
+      <div class="stat-card red">
+        <div class="stat-value" id="stat-late">—</div>
+        <div class="stat-label">Overdue</div>
+      </div>
+    </div>
+
+    <div class="table-wrap">
+      <div class="table-header">
+        <span class="table-title">Intern Progress — This Week</span>
+        <span class="badge" id="week-badge">Week 2</span>
+      </div>
+      <div id="intern-table-container">
+        <div class="loading">Loading from Google Sheets</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── TASK BOARD ─────────────────────────────────────── -->
+  <div class="view" id="view-tasks">
+    <div class="page-header">
+      <div class="page-title">
+        Task Board
+        <span>Weeks 2–4 · Foundations Phase</span>
+      </div>
+    </div>
+
+    <div class="week-tabs">
+      <div class="week-tab active" onclick="filterTasks(2, this)">Week 2</div>
+      <div class="week-tab" onclick="filterTasks(3, this)">Week 3</div>
+      <div class="week-tab" onclick="filterTasks(4, this)">Week 4</div>
+    </div>
+
+    <div id="task-board-container">
+      <div class="loading">Loading tasks</div>
+    </div>
+  </div>
+
+  <!-- ── INTERNS ─────────────────────────────────────────── -->
+  <div class="view" id="view-interns">
+    <div class="page-header">
+      <div class="page-title">
+        Interns
+        <span>Roster · Track assignments · Contact</span>
+      </div>
+    </div>
+    <div class="table-wrap">
+      <div class="table-header">
+        <span class="table-title">Intern Roster</span>
+      </div>
+      <div id="interns-table-container">
+        <div class="loading">Loading roster</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── SUBMISSIONS ─────────────────────────────────────── -->
+  <div class="view" id="view-submissions">
+    <div class="page-header">
+      <div class="page-title">
+        Submissions
+        <span>All intern task submissions</span>
+      </div>
+    </div>
+    <div class="table-wrap">
+      <div class="table-header">
+        <span class="table-title">Submission Log</span>
+        <span class="badge" id="sub-count">0 entries</span>
+      </div>
+      <div id="submissions-table-container">
+        <div class="loading">Loading submissions</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── SETUP ───────────────────────────────────────────── -->
+  <div class="view" id="view-setup">
+    <div class="page-header">
+      <div class="page-title">
+        Setup &amp; Configuration
+        <span>Connect Google Sheets · Set current week</span>
+      </div>
+    </div>
+
+    <div class="notice">
+      <span class="notice-icon">ℹ</span>
+      <p>
+        <strong>How this works:</strong> Each tab below maps to one sheet in your Google Sheets workbook. Publish each sheet as CSV (File → Share → Publish to web → CSV) and paste the URL here. The dashboard reads live data — no backend needed.
+      </p>
+    </div>
+
+    <div class="setup-block">
+      <h3>Google Sheets — Data Sources</h3>
+
+      <div class="config-row">
+        <span class="config-label">Interns Sheet CSV URL</span>
+        <input class="config-input" id="cfg-interns-url" placeholder="https://docs.google.com/spreadsheets/d/.../export?format=csv&gid=..." />
+        <button class="btn btn-ghost" onclick="testSheet('cfg-interns-url')">Test</button>
+      </div>
+
+      <div class="config-row">
+        <span class="config-label">Tasks Sheet CSV URL</span>
+        <input class="config-input" id="cfg-tasks-url" placeholder="https://docs.google.com/spreadsheets/d/.../export?format=csv&gid=..." />
+        <button class="btn btn-ghost" onclick="testSheet('cfg-tasks-url')">Test</button>
+      </div>
+
+      <div class="config-row">
+        <span class="config-label">Submissions Sheet CSV URL</span>
+        <input class="config-input" id="cfg-submissions-url" placeholder="https://docs.google.com/spreadsheets/d/.../export?format=csv&gid=..." />
+        <button class="btn btn-ghost" onclick="testSheet('cfg-submissions-url')">Test</button>
+      </div>
+
+      <div style="margin-top:20px; display:flex; gap:10px;">
+        <button class="btn btn-primary" onclick="saveConfig()">Save &amp; Connect</button>
+        <button class="btn btn-ghost" onclick="loadSampleData()">Load Sample Data</button>
+      </div>
+    </div>
+
+    <div class="setup-block">
+      <h3>Programme Settings</h3>
+      <div class="config-row">
+        <span class="config-label">Current Week</span>
+        <input class="config-input" id="cfg-current-week" type="number" min="1" max="13" value="2" style="width:80px;" />
+        <button class="btn btn-ghost" onclick="saveWeek()">Set</button>
+      </div>
+      <div class="config-row">
+        <span class="config-label">Cohort Start Date</span>
+        <input class="config-input" id="cfg-start-date" type="date" />
+        <button class="btn btn-ghost" onclick="saveStartDate()">Set</button>
+      </div>
+    </div>
+
+    <div class="setup-block">
+      <h3>Google Sheets — Expected Column Structure</h3>
+      <p style="font-family: var(--font-mono); font-size: 0.72rem; color: var(--muted); line-height: 2; margin-bottom: 8px;">
+        <strong style="color:var(--amber)">Interns sheet:</strong> name · email · track · week · status · progress_pct<br/>
+        <strong style="color:var(--amber)">Tasks sheet:</strong> task_id · week · day · title · description · track · points · type<br/>
+        <strong style="color:var(--amber)">Submissions sheet:</strong> intern_name · task_id · submitted_date · status · score · notes
+      </p>
+    </div>
+  </div>
+
+</main>
+</div>
+
+<script>
+/* ═══════════════════════════════════════════════════════
+   CONFIG — paste your Google Sheets CSV URLs here
+   or use the Setup panel in the UI
+═══════════════════════════════════════════════════════ */
+const CONFIG = {
+  internsUrl:      localStorage.getItem('mr_interns_url')      || '',
+  tasksUrl:        localStorage.getItem('mr_tasks_url')        || '',
+  submissionsUrl:  localStorage.getItem('mr_submissions_url')  || '',
+  currentWeek:     parseInt(localStorage.getItem('mr_week'))   || 2,
+};
+
+/* ═══════════════════════════════════════════════════════
+   SAMPLE DATA — shown when sheets not yet connected
+═══════════════════════════════════════════════════════ */
+const SAMPLE_INTERNS = [
+  { name: 'Sara Al-Jabouri',  email: 'sara@example.com',   track: 'Content',     week: 2, status: 'active',   progress_pct: 72 },
+  { name: 'Ali Kadhim',       email: 'ali@example.com',    track: 'Marketing',   week: 2, status: 'active',   progress_pct: 55 },
+  { name: 'Nour Hashim',      email: 'nour@example.com',   track: 'Design',      week: 2, status: 'active',   progress_pct: 90 },
+  { name: 'Omar Zainabi',     email: 'omar@example.com',   track: 'Analytics',   week: 2, status: 'late',     progress_pct: 20 },
+  { name: 'Dina Al-Rubaie',   email: 'dina@example.com',   track: 'Operations',  week: 2, status: 'active',   progress_pct: 65 },
+];
+
+const SAMPLE_TASKS = [
+  { task_id:'W2-D1-1', week:2, day:1, title:'Brand Voice Audit',           description:'Review 5 Rahal posts. Identify tone inconsistencies.',  track:'Content',    points:10, type:'analysis' },
+  { task_id:'W2-D1-2', week:2, day:1, title:'Competitor Mapping',          description:'Map 3 travel platforms operating in Iraq.',             track:'Marketing',  points:10, type:'research' },
+  { task_id:'W2-D2-1', week:2, day:2, title:'PostHog Funnel Review',       description:'Pull week 1 conversion funnel. Annotate drop-off.',      track:'Analytics',  points:15, type:'data' },
+  { task_id:'W2-D2-2', week:2, day:2, title:'Canva Template Set',          description:'Create 3 reusable story templates in Rahal brand.',     track:'Design',     points:10, type:'output' },
+  { task_id:'W2-D3-1', week:2, day:3, title:'WhatsApp Copy Sprint',        description:'Write 5 Iraqi dialect captions for Aqsati promo.',      track:'Content',    points:10, type:'copy' },
+  { task_id:'W2-D3-2', week:2, day:3, title:'Channel Attribution Report',  description:'Identify top 3 traffic sources in PostHog this week.',  track:'Analytics',  points:15, type:'data' },
+  { task_id:'W3-D1-1', week:3, day:1, title:'SEO Keyword Cluster',         description:'Build keyword map for religious travel pages.',         track:'Marketing',  points:15, type:'seo' },
+  { task_id:'W3-D1-2', week:3, day:1, title:'Arbaeen Content Plan',        description:'Draft 7-day content calendar for Arbaeen season.',      track:'Content',    points:15, type:'planning' },
+  { task_id:'W4-D1-1', week:4, day:1, title:'Thesis Milestone 1',          description:'Submit 500-word research question and methodology.',    track:'All',        points:20, type:'thesis' },
+];
+
+const SAMPLE_SUBMISSIONS = [
+  { intern_name:'Sara Al-Jabouri', task_id:'W2-D1-1', submitted_date:'2026-04-20', status:'done',    score:9,  notes:'Strong analysis' },
+  { intern_name:'Nour Hashim',     task_id:'W2-D1-2', submitted_date:'2026-04-20', status:'done',    score:10, notes:'Excellent depth' },
+  { intern_name:'Ali Kadhim',      task_id:'W2-D1-1', submitted_date:'2026-04-21', status:'pending', score:null, notes:'' },
+  { intern_name:'Omar Zainabi',    task_id:'W2-D1-1', submitted_date:null,         status:'late',    score:null, notes:'No contact' },
+  { intern_name:'Dina Al-Rubaie', task_id:'W2-D2-2', submitted_date:'2026-04-21', status:'done',    score:8,  notes:'Good structure' },
+];
+
+/* ═══════════════════════════════════════════════════════
+   STATE
+═══════════════════════════════════════════════════════ */
+let DATA = { interns: [], tasks: [], submissions: [] };
+let currentTaskWeek = CONFIG.currentWeek;
+let usingLive = false;
+
+/* ═══════════════════════════════════════════════════════
+   INIT
+═══════════════════════════════════════════════════════ */
+document.addEventListener('DOMContentLoaded', () => {
+  loadConfig();
+  loadAllData();
+  startClock();
+  // Pre-fill setup inputs
+  document.getElementById('cfg-interns-url').value      = CONFIG.internsUrl;
+  document.getElementById('cfg-tasks-url').value        = CONFIG.tasksUrl;
+  document.getElementById('cfg-submissions-url').value  = CONFIG.submissionsUrl;
+  document.getElementById('cfg-current-week').value     = CONFIG.currentWeek;
+});
+
+function startClock() {
+  const tick = () => {
+    const now = new Date();
+    document.getElementById('live-clock').textContent =
+      now.toLocaleTimeString('en-GB', {hour:'2-digit', minute:'2-digit'});
+  };
+  tick(); setInterval(tick, 1000);
+}
+
+/* ═══════════════════════════════════════════════════════
+   DATA LOADING
+═══════════════════════════════════════════════════════ */
+async function loadAllData() {
+  if (CONFIG.internsUrl && CONFIG.tasksUrl && CONFIG.submissionsUrl) {
+    try {
+      const [interns, tasks, subs] = await Promise.all([
+        fetchCSV(CONFIG.internsUrl),
+        fetchCSV(CONFIG.tasksUrl),
+        fetchCSV(CONFIG.submissionsUrl),
+      ]);
+      DATA.interns     = interns;
+      DATA.tasks       = tasks;
+      DATA.submissions = subs;
+      usingLive = true;
+    } catch (e) {
+      console.warn('Sheets load failed, using sample data', e);
+      loadSampleData();
+      return;
+    }
+  } else {
+    loadSampleData();
+  }
+  renderAll();
+}
+
+function loadSampleData() {
+  DATA.interns     = SAMPLE_INTERNS;
+  DATA.tasks       = SAMPLE_TASKS;
+  DATA.submissions = SAMPLE_SUBMISSIONS;
+  usingLive = false;
+  renderAll();
+}
+
+async function fetchCSV(url) {
+  const res = await fetch(url);
+  if (!res.ok) throw new Error('Fetch failed: ' + res.status);
+  const text = await res.text();
+  return parseCSV(text);
+}
+
+function parseCSV(text) {
+  const lines = text.trim().split('\n');
+  const headers = lines[0].split(',').map(h => h.trim().replace(/^"|"$/g, '').toLowerCase().replace(/ /g,'_'));
+  return lines.slice(1).map(line => {
+    const vals = line.split(',').map(v => v.trim().replace(/^"|"$/g, ''));
+    const obj = {};
+    headers.forEach((h, i) => obj[h] = vals[i] || '');
+    return obj;
+  });
+}
+
+/* ═══════════════════════════════════════════════════════
+   RENDER — ALL
+═══════════════════════════════════════════════════════ */
+function renderAll() {
+  renderStats();
+  renderInternTable();
+  renderTaskBoard(currentTaskWeek);
+  renderInternsTab();
+  renderSubmissions();
+  document.getElementById('week-indicator').textContent = `WEEK ${CONFIG.currentWeek}`;
+  document.getElementById('week-badge').textContent = `Week ${CONFIG.currentWeek}`;
+}
+
+/* ─── STATS ───────────────────────────────────────────── */
+function renderStats() {
+  const interns     = DATA.interns.length;
+  const done        = DATA.submissions.filter(s => s.status === 'done').length;
+  const pending     = DATA.submissions.filter(s => s.status === 'pending').length;
+  const late        = DATA.submissions.filter(s => s.status === 'late').length;
+  document.getElementById('stat-interns').textContent = interns || '—';
+  document.getElementById('stat-done').textContent    = done    || '0';
+  document.getElementById('stat-pending').textContent = pending || '0';
+  document.getElementById('stat-late').textContent    = late    || '0';
+}
+
+/* ─── INTERN PROGRESS TABLE ───────────────────────────── */
+function renderInternTable() {
+  const el = document.getElementById('intern-table-container');
+  if (!DATA.interns.length) { el.innerHTML = '<div class="loading">No intern data</div>'; return; }
+
+  const rows = DATA.interns.map(intern => {
+    const pct    = parseInt(intern.progress_pct) || 0;
+    const status = intern.status || 'active';
+    const sClass = status === 'done' ? 's-done' : status === 'late' ? 's-late' : status === 'pending' ? 's-pending' : 's-na';
+    const sLabel = status === 'active' ? 'on track' : status;
+    const barColor = pct >= 70 ? 'green' : '';
+
+    const internSubs = DATA.submissions.filter(s => s.intern_name === intern.name);
+    const submittedCount = internSubs.filter(s => s.status === 'done').length;
+
+    return `<tr>
+      <td><strong>${intern.name}</strong></td>
+      <td><span style="font-family:var(--font-mono);font-size:0.75rem;color:var(--blue)">${intern.track || '—'}</span></td>
+      <td>
+        <div style="display:flex;align-items:center;gap:10px;">
+          <div class="progress-track"><div class="progress-fill ${barColor}" style="width:${pct}%"></div></div>
+          <span style="font-family:var(--font-mono);font-size:0.72rem;color:var(--muted)">${pct}%</span>
+        </div>
+      </td>
+      <td style="font-family:var(--font-mono);font-size:0.75rem;color:var(--muted)">${submittedCount} submitted</td>
+      <td><span class="status ${sClass}"><span class="status-dot"></span>${sLabel}</span></td>
+    </tr>`;
+  }).join('');
+
+  el.innerHTML = `<table>
+    <thead><tr>
+      <th>Name</th><th>Track</th><th>Progress</th><th>Submissions</th><th>Status</th>
+    </tr></thead>
+    <tbody>${rows}</tbody>
+  </table>`;
+}
+
+/* ─── TASK BOARD ──────────────────────────────────────── */
+function renderTaskBoard(week) {
+  const el = document.getElementById('task-board-container');
+  const tasks = DATA.tasks.filter(t => parseInt(t.week) === parseInt(week));
+  if (!tasks.length) {
+    el.innerHTML = `<div class="loading">No tasks for week ${week}. Add them in Google Sheets.</div>`;
+    return;
+  }
+  el.innerHTML = `<div class="task-grid">${tasks.map(t => `
+    <div class="task-card">
+      <div class="task-id">${t.task_id} · Day ${t.day}</div>
+      <div class="task-title">${t.title}</div>
+      <div class="task-desc">${t.description}</div>
+      <div class="task-meta">
+        <span class="task-track">${t.track}</span>
+        <span style="font-family:var(--font-mono);font-size:0.68rem;color:var(--muted)">${t.points || 10} pts</span>
+      </div>
+    </div>`).join('')}</div>`;
+}
+
+function filterTasks(week, el) {
+  document.querySelectorAll('.week-tab').forEach(t => t.classList.remove('active'));
+  el.classList.add('active');
+  currentTaskWeek = week;
+  renderTaskBoard(week);
+}
+
+/* ─── INTERNS TAB ─────────────────────────────────────── */
+function renderInternsTab() {
+  const el = document.getElementById('interns-table-container');
+  if (!DATA.interns.length) { el.innerHTML = '<div class="loading">No data</div>'; return; }
+  const rows = DATA.interns.map(i => `<tr>
+    <td><strong>${i.name}</strong></td>
+    <td style="font-family:var(--font-mono);font-size:0.75rem">${i.email || '—'}</td>
+    <td><span style="font-family:var(--font-mono);font-size:0.75rem;color:var(--blue)">${i.track || '—'}</span></td>
+    <td style="font-family:var(--font-mono);font-size:0.75rem;color:var(--muted)">Week ${i.week || CONFIG.currentWeek}</td>
+    <td><span class="status ${i.status==='active'?'s-done':i.status==='late'?'s-late':'s-na'}">
+      <span class="status-dot"></span>${i.status || 'active'}
+    </span></td>
+  </tr>`).join('');
+  el.innerHTML = `<table><thead><tr>
+    <th>Name</th><th>Email</th><th>Track</th><th>Week</th><th>Status</th>
+  </tr></thead><tbody>${rows}</tbody></table>`;
+}
+
+/* ─── SUBMISSIONS ─────────────────────────────────────── */
+function renderSubmissions() {
+  const el = document.getElementById('submissions-table-container');
+  document.getElementById('sub-count').textContent = DATA.submissions.length + ' entries';
+  if (!DATA.submissions.length) { el.innerHTML = '<div class="loading">No submissions yet</div>'; return; }
+  const rows = DATA.submissions.map(s => {
+    const sc = s.status === 'done' ? 's-done' : s.status === 'late' ? 's-late' : 's-pending';
+    return `<tr>
+      <td><strong>${s.intern_name}</strong></td>
+      <td style="font-family:var(--font-mono);font-size:0.75rem;color:var(--amber)">${s.task_id}</td>
+      <td style="font-family:var(--font-mono);font-size:0.75rem;color:var(--muted)">${s.submitted_date || '—'}</td>
+      <td><span class="status ${sc}"><span class="status-dot"></span>${s.status}</span></td>
+      <td style="font-family:var(--font-mono);font-size:0.85rem">${s.score !== null && s.score !== '' ? s.score + '/10' : '—'}</td>
+      <td style="font-size:0.78rem;color:var(--muted)">${s.notes || '—'}</td>
+    </tr>`;
+  }).join('');
+  el.innerHTML = `<table><thead><tr>
+    <th>Intern</th><th>Task ID</th><th>Date</th><th>Status</th><th>Score</th><th>Notes</th>
+  </tr></thead><tbody>${rows}</tbody></table>`;
+}
+
+/* ═══════════════════════════════════════════════════════
+   NAVIGATION
+═══════════════════════════════════════════════════════ */
+function showView(name) {
+  document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  document.getElementById('view-' + name).classList.add('active');
+  event.currentTarget.classList.add('active');
+}
+
+/* ═══════════════════════════════════════════════════════
+   CONFIG SAVE / LOAD
+═══════════════════════════════════════════════════════ */
+function saveConfig() {
+  CONFIG.internsUrl     = document.getElementById('cfg-interns-url').value.trim();
+  CONFIG.tasksUrl       = document.getElementById('cfg-tasks-url').value.trim();
+  CONFIG.submissionsUrl = document.getElementById('cfg-submissions-url').value.trim();
+  localStorage.setItem('mr_interns_url',     CONFIG.internsUrl);
+  localStorage.setItem('mr_tasks_url',       CONFIG.tasksUrl);
+  localStorage.setItem('mr_submissions_url', CONFIG.submissionsUrl);
+  loadAllData();
+}
+
+function loadConfig() {
+  CONFIG.internsUrl     = localStorage.getItem('mr_interns_url')      || '';
+  CONFIG.tasksUrl       = localStorage.getItem('mr_tasks_url')        || '';
+  CONFIG.submissionsUrl = localStorage.getItem('mr_submissions_url')  || '';
+  CONFIG.currentWeek    = parseInt(localStorage.getItem('mr_week'))   || 2;
+}
+
+function saveWeek() {
+  const w = parseInt(document.getElementById('cfg-current-week').value);
+  CONFIG.currentWeek = w;
+  localStorage.setItem('mr_week', w);
+  renderAll();
+}
+
+function saveStartDate() {
+  const d = document.getElementById('cfg-start-date').value;
+  localStorage.setItem('mr_start_date', d);
+}
+
+async function testSheet(inputId) {
+  const url = document.getElementById(inputId).value.trim();
+  if (!url) { alert('Paste a URL first.'); return; }
+  try {
+    const res = await fetch(url);
+    if (res.ok) { alert('✓ Connected successfully.'); }
+    else { alert('✗ Could not reach sheet. Check the URL and that it is published publicly.'); }
+  } catch(e) {
+    alert('✗ Network error. Make sure the sheet is published to web.');
+  }
+}
+</script>
+</body>
+</html>
