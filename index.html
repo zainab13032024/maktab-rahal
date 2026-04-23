@@ -667,9 +667,9 @@ tr:hover td { background: rgba(255,255,255,0.02); }
    or use the Setup panel in the UI
 ═══════════════════════════════════════════════════════ */
 const CONFIG = {
-  internsUrl:      localStorage.getItem('mr_interns_url')      || '',
-  tasksUrl:        localStorage.getItem('mr_tasks_url')        || '',
-  submissionsUrl:  localStorage.getItem('mr_submissions_url')  || '',
+  internsUrl:      localStorage.getItem('mr_interns_url')      || 'https://docs.google.com/spreadsheets/d/e/2PACX-1vS-vnNCQmDit2uoX__jfxx-nNYu4jfUeeBrMoaiTw3RSmaEabhH_mhztgb9Weol_i_i_1XFKbBH5Qi4/pub?gid=363985794&single=true&output=csv',
+  tasksUrl:        localStorage.getItem('mr_tasks_url')        || 'https://docs.google.com/spreadsheets/d/e/2PACX-1vS-vnNCQmDit2uoX__jfxx-nNYu4jfUeeBrMoaiTw3RSmaEabhH_mhztgb9Weol_i_i_1XFKbBH5Qi4/pub?gid=2087773770&single=true&output=csv',
+  submissionsUrl:  localStorage.getItem('mr_submissions_url')  || 'https://docs.google.com/spreadsheets/d/e/2PACX-1vS-vnNCQmDit2uoX__jfxx-nNYu4jfUeeBrMoaiTw3RSmaEabhH_mhztgb9Weol_i_i_1XFKbBH5Qi4/pub?gid=1828503214&single=true&output=csv',
   currentWeek:     parseInt(localStorage.getItem('mr_week'))   || 2,
 };
 
